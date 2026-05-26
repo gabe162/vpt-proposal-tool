@@ -7,13 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#1a1814;--ink-mid:#4a453e;--ink-light:#9a9189;
-  --cream:#f8f5ef;--cream-dark:#ede9e0;
-  --gold:#b8975a;--gold-light:#d4b97c;
-  --white:#ffffff;--border:rgba(184,151,90,0.25);
-  --green:#2d6a4f;
-}
+:root{--ink:#1a1814;--ink-mid:#4a453e;--ink-light:#9a9189;--cream:#f8f5ef;--cream-dark:#ede9e0;--gold:#b8975a;--gold-light:#d4b97c;--white:#ffffff;--border:rgba(184,151,90,0.25);--green:#2d6a4f;}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
 .site-header{background:var(--ink);padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between}
 .logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-light)}
@@ -82,14 +76,7 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
 .action-btn:hover{border-color:var(--gold);color:var(--ink)}
 .action-btn.primary{background:var(--ink);color:var(--gold-light);border-color:var(--ink)}
 .action-btn.primary:hover{background:#2d2920}
-.badge{display:inline-block;font-size:.62rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;background:rgba(184,151,90,.12);color:var(--gold);margin-left:.4rem;vertical-align:middle}
-@media print{
-  .site-header,.input-panel,.action-bar,.streaming-indicator{display:none!important}
-  .app{display:block}
-  .output-panel{padding:0;background:white}
-  .proposal{display:block!important;max-width:100%}
-  .proposal-body{border:none}
-}
+@media print{.site-header,.input-panel,.action-bar,.streaming-indicator{display:none!important}.app{display:block}.output-panel{padding:0;background:white}.proposal{display:block!important;max-width:100%}.proposal-body{border:none}}
 </style>
 </head>
 <body>
@@ -100,25 +87,20 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
 </header>
 
 <div class="app">
-
   <aside class="input-panel">
     <div>
       <h1 class="panel-title">Tern → Proposal</h1>
-      <p class="panel-sub">Paste a Tern form submission below. Claude will parse every field and generate a polished client proposal.</p>
+      <p class="panel-sub">Paste a Tern form submission below. Claude will parse every field and write a full client proposal.</p>
     </div>
-
     <div>
       <label class="field-label">Paste Tern submission</label>
-      <textarea class="paste-area" id="ternPaste" placeholder="Paste the full Tern trip request submission here — just copy the text from Tern and drop it in..."></textarea>
+      <textarea class="paste-area" id="ternPaste" placeholder="Paste the full Tern trip request submission here..."></textarea>
     </div>
-
     <button class="parse-btn" onclick="parseAndPreview()">Parse Submission ↓</button>
-
     <div class="parsed-preview" id="parsedPreview">
       <div class="preview-title">Parsed fields</div>
       <div id="previewRows"></div>
     </div>
-
     <div>
       <label class="field-label">Proposal tone</label>
       <div class="tone-row">
@@ -142,28 +124,23 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
         </div>
       </div>
     </div>
-
     <div>
       <label class="field-label">Advisor notes (optional)</label>
       <input type="text" id="advisorNotes" placeholder="e.g. I know a great private boat for Amalfi...">
     </div>
-
     <button class="generate-btn" id="generateBtn" onclick="generateProposal()">Generate Proposal</button>
   </aside>
 
   <main class="output-panel" id="outputPanel">
-
     <div class="empty-state" id="emptyState">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       <h3>Paste a Tern submission</h3>
-      <p>Parse it, then generate a proposal in seconds</p>
+      <p>Parse it, then generate a full proposal</p>
     </div>
-
     <div class="streaming-indicator" id="streamingIndicator">
       <div class="dot-pulse"><span></span><span></span><span></span></div>
-      Crafting proposal for <span id="streamClientName" style="font-weight:500;color:var(--ink-mid);margin-left:.2rem"></span>…
+      Writing proposal for <span id="streamClientName" style="font-weight:500;color:var(--ink-mid);margin-left:.2rem"></span>…
     </div>
-
     <div class="proposal" id="proposal">
       <div class="action-bar">
         <button class="action-btn" onclick="window.print()">Print / PDF</button>
@@ -178,7 +155,6 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
       </div>
       <div class="proposal-body" id="proposalBody"></div>
     </div>
-
   </main>
 </div>
 
@@ -300,45 +276,58 @@ async function generateProposal() {
   document.getElementById('streamingIndicator').classList.add('active');
   document.getElementById('generateBtn').disabled = true;
 
-  const pointsSection = (parsed.usePoints && parsed.usePoints.toLowerCase().includes('yes') || parsed.pointsDetail)
-    ? `7. "Points & Miles Strategy" — a dedicated section with specific recommendations. Points detail: ${parsed.pointsDetail || 'to be discussed'}. Be specific about transfer partners, sweet spots, and which programs are best for this itinerary.`
-    : '';
+  const prompt = `You are Gabriel Douek, a luxury travel advisor at Vantage Point Travel. A client has submitted a trip request and you are writing them a fully fledged, expert travel proposal — NOT a summary of what they submitted. This is a sales document and a service document. It should make the client excited, informed, and confident they're in the best hands.
 
-  const prompt = `You are a luxury travel advisor at Vantage Point Travel. Write a polished, personalized trip proposal for a client. Output clean HTML (no code fences, just HTML tags). Use only: h2, h3, p, ul, li, div.highlight-box. No inline styles. No outer wrapper.
+OUTPUT FORMAT: Clean HTML only. No markdown, no code fences, no backticks. Use only these tags: h2, h3, p, ul, li, div (with class="highlight-box"). No inline styles. No outer wrapper div. Start directly with content.
 
-CLIENT & TRIP DATA (parsed from their Tern intake form):
-- Client name: ${parsed.clientName}
-- Email: ${parsed.email || 'on file'}
+CLIENT REQUEST (use this as context — do NOT repeat it back verbatim):
+- Client: ${parsed.clientName}
 - Destination: ${parsed.destination}
-- Trip name: ${parsed.tripName}
 - Dates: ${dateRange}${parsed.duration ? ` (${parsed.duration})` : ''}
 - Travelers: ${parsed.travelers}
-- Rooms needed: ${parsed.rooms || '1 room'}
-- Room preference: ${parsed.roomPref || 'standard'}
-- What to book: ${parsed.whatToBook}
-- Preferred airports: ${parsed.airports}
-- Flight class: ${parsed.flightClass}
-- Would use points: ${parsed.usePoints}
-- Points/loyalty programs: ${parsed.pointsDetail || 'none specified'}
-- Activities interested in: ${parsed.activities}
 - Reason for travel: ${parsed.reason}
+- Flight preference: ${parsed.flightClass} from ${parsed.airports}
+- Accommodation preference: ${parsed.roomPref || 'standard'}, ${parsed.rooms || '1 room'}
+- What they need booked: ${parsed.whatToBook}
+- Activities interested in: ${parsed.activities}
+- Points/miles: ${parsed.usePoints} — programs: ${parsed.pointsDetail || 'none specified'}
 - Budget per person: ${parsed.budget ? '$' + parsed.budget : 'not specified'}
-- Special details: ${parsed.extras || 'none'}
-${advisorNotes ? `- Advisor's personal notes: ${advisorNotes}` : ''}
+- Special notes: ${parsed.extras || 'none'}
+${advisorNotes ? `- Advisor personal notes: ${advisorNotes}` : ''}
 
 Tone: ${tone}. Emphasis: ${emphasis}.
 
-Structure (h2 for section headings):
-1. Warm personalized opening paragraph (no heading) — address ${parsed.clientName} by name, reference their specific trip context (${parsed.reason})
-2. "The Experience" — 2–3 vivid paragraphs painting a picture of this specific destination and trip type. Be specific — real place names, real experiences.
-3. "Suggested Highlights" — 5–7 bullet points of specific experiences, sights, and moments for this trip
-4. "Where You'll Stay" — recommendations for accommodation style, specific property tiers, and any known properties (they mentioned: ${parsed.destination})
-5. "Getting There" — flight routing from ${parsed.airports}, airline options for ${parsed.flightClass}, realistic timing
-${pointsSection}
-6. "Why Vantage Point Travel" — 4 bullet points: what we handle, VIP perks access, savings, expertise. Keep it specific and confident.
-7. Warm closing paragraph inviting them to reach out, signed from Gabriel Douek, Vantage Point Travel.
+WRITE THE FOLLOWING SECTIONS — each one should be substantive, expert, and specific:
 
-Length: ~700–900 words. Write like a trusted expert who has been to this destination. No generic copy.`;
+Opening paragraph (no h2 heading): A warm, personal 2–3 sentence opener addressing ${parsed.clientName} by first name. Acknowledge what they're celebrating or looking for (${parsed.reason}). Set the tone for the proposal.
+
+h2: Why This Trip, Why Now
+Write 2 paragraphs that sell the destination. Use your expert knowledge — what makes this place extraordinary for THIS type of traveler at THIS time of year. Mention specific neighborhoods, landscapes, food scenes, cultural moments. Make them feel like they can already picture themselves there.
+
+h2: Your Itinerary Vision
+Don't write a day-by-day schedule. Instead, write 3–4 paragraphs describing the shape and rhythm of the trip — how the days might flow, what the balance of experiences looks like, what kind of moments they'll have. Be evocative and specific. Reference real places, restaurants, experiences, and local gems relevant to their destination and interests (${parsed.activities}).
+
+h2: Where You'll Stay
+Recommend 2–3 specific real hotels or properties that fit their destination, budget, and preferences. For each one, write 2–3 sentences: what makes it special, what the experience is like, why it's right for them. If they mentioned a specific property, validate that choice and add complementary options.
+
+h2: Getting There
+Specific flight strategy: which airlines fly the best routes from ${parsed.airports} to the destination, realistic flight times, which cabin class makes sense for ${parsed.flightClass}. If they have points (${parsed.pointsDetail}), name the specific programs and sweet spots — transfer partners, award programs, what a redemption might look like. Be concrete and actionable.
+
+${parsed.usePoints && (parsed.usePoints.toLowerCase().includes('yes') || parsed.usePoints.toLowerCase().includes('possibly')) ? `h2: Points & Miles Strategy
+Give a real, specific strategy for ${parsed.pointsDetail || 'their loyalty programs'}. Name transfer partners, award programs, redemption sweet spots for this specific route and hotel category. Estimate the value they could extract. This should feel like expert advice, not generic tips.` : ''}
+
+h2: What We Handle For You
+4–5 bullet points describing exactly what Vantage Point Travel takes care of: flights, hotels, transfers, restaurant reservations, activity bookings, 24/7 support, supplier relationships, VIP amenities. Make it feel like a concierge service.
+
+div.highlight-box: A short punchy value statement — the headline benefit of booking through VPT for this specific trip. One or two sentences max.
+
+Closing paragraph: Warm, personal close. Invite them to jump on a call or reply to get started. Reference their travel dates to create light urgency. Sign off as Gabriel Douek, Vantage Point Travel.
+
+CRITICAL RULES:
+- DO NOT list or repeat their form answers back to them. Never write "You selected..." or "You mentioned..." Use the data to inform your writing, not regurgitate it.
+- Every hotel, airline, restaurant, or experience you name must be real and specific to this destination.
+- Write at least 900 words. This is a full proposal, not a summary.
+- Sound like an expert who has been there, not a chatbot reading a form.`;
 
   const PROXY_URL = 'https://vantagepointtravel.com/wp-json/vpt/v1/proxy';
   const PROXY_KEY = '6564ee37969c7b9e8079e4f44310fe05ba078421b61bc7d4bdf934b3972afdbb';
@@ -353,7 +342,7 @@ Length: ~700–900 words. Write like a trusted expert who has been to this desti
         method: 'POST',
         body: {
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
+          max_tokens: 3000,
           messages: [{role:'user', content: prompt}]
         }
       })
