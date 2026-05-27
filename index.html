@@ -80,12 +80,10 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
 </style>
 </head>
 <body>
-
 <header class="site-header">
   <div class="logo">Vantage Point <span>|</span> Travel</div>
   <div class="header-tag">Proposal Studio — Tern Import</div>
 </header>
-
 <div class="app">
   <aside class="input-panel">
     <div>
@@ -130,7 +128,6 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
     </div>
     <button class="generate-btn" id="generateBtn" onclick="generateProposal()">Generate Proposal</button>
   </aside>
-
   <main class="output-panel" id="outputPanel">
     <div class="empty-state" id="emptyState">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity:.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -157,7 +154,6 @@ select:focus,input[type=text]:focus{border-color:var(--gold)}
     </div>
   </main>
 </div>
-
 <script>
 function parseTernSubmission(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
@@ -177,50 +173,36 @@ function parseTernSubmission(raw) {
   data.firstName = extract(['Responder First Name','First Name']);
   data.lastName  = extract(['Responder Last Name','Last Name']);
   data.preferredName = extract(['Preferred First Name']);
-  data.clientName = data.preferredName && data.preferredName !== '–'
-    ? `${data.preferredName} ${data.lastName}`
-    : `${data.firstName} ${data.lastName}`.trim() || 'Valued Client';
+  data.clientName = data.preferredName && data.preferredName !== '–' ? `${data.preferredName} ${data.lastName}` : `${data.firstName} ${data.lastName}`.trim() || 'Valued Client';
   data.email = extract(['Responder Email','Email']);
   data.phone = extract(['Responder Phone','Phone']);
   data.tripName = extract(['* Trip','Trip']);
   data.destination = extract(['destination','What destination']);
-  data.startDate   = extract(['Start Date']);
-  data.endDate     = extract(['End Date']);
-  data.flexDates   = extract(['flexible with your dates','flexible','month']);
-  data.travelers   = extract(['How many people','how many adults']);
-  data.rooms       = extract(['rooms/beds','rooms']);
-  data.roomPref    = extract(['specifics requests for type','room type','accommo']);
+  data.startDate = extract(['Start Date']);
+  data.endDate = extract(['End Date']);
+  data.flexDates = extract(['flexible with your dates','flexible','month']);
+  data.travelers = extract(['How many people','how many adults']);
+  data.rooms = extract(['rooms/beds','rooms']);
+  data.roomPref = extract(['specifics requests for type','room type','accommo']);
   data.flightClass = extract(['class of travel','preferred class']);
-  data.airports    = extract(['Departure and Destination Airports','Preferred Departure']);
-  data.activities  = extract(['activities are you interested','activities']);
-  data.whatToBook  = extract(['need to reserve','What do you need']);
-  data.reason      = extract(['Reason for traveling','reason']);
-  data.budget      = extract(['Budget Per Person','Budget']);
-  data.usePoints   = extract(['use miles','miles/points']);
-  data.pointsDetail= extract(['list the programs','programs you wish']);
-  data.insurance   = extract(['travel insurance']);
-  data.passports   = extract(['valid passports']);
-  data.extras      = extract(['details or extras','additional info','Please include any']);
+  data.airports = extract(['Departure and Destination Airports','Preferred Departure']);
+  data.activities = extract(['activities are you interested','activities']);
+  data.whatToBook = extract(['need to reserve','What do you need']);
+  data.reason = extract(['Reason for traveling','reason']);
+  data.budget = extract(['Budget Per Person','Budget']);
+  data.usePoints = extract(['use miles','miles/points']);
+  data.pointsDetail = extract(['list the programs','programs you wish']);
+  data.extras = extract(['details or extras','additional info','Please include any']);
   if (data.startDate && data.endDate && data.startDate !== '–' && data.endDate !== '–') {
-    try {
-      const s = new Date(data.startDate), e = new Date(data.endDate);
-      const n = Math.round((e-s)/86400000);
-      if (n > 0) data.duration = `${n} nights`;
-    } catch(e){}
+    try { const n = Math.round((new Date(data.endDate)-new Date(data.startDate))/86400000); if (n>0) data.duration=`${n} nights`; } catch(e){}
   }
   return data;
 }
-
 function formatDate(s) {
-  if (!s || s==='–') return null;
-  try {
-    const d = new Date(s+'T12:00:00');
-    return d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  } catch(e){ return s; }
+  if (!s||s==='–') return null;
+  try { return new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); } catch(e){ return s; }
 }
-
 let parsed = null;
-
 function parseAndPreview() {
   const raw = document.getElementById('ternPaste').value.trim();
   if (!raw) { alert('Please paste a Tern submission first.'); return; }
@@ -228,171 +210,123 @@ function parseAndPreview() {
   const rows = [
     ['Client', parsed.clientName],
     ['Destination', parsed.destination],
-    ['Dates', parsed.startDate && parsed.startDate!=='–' ? `${formatDate(parsed.startDate)} – ${formatDate(parsed.endDate)}` : (parsed.flexDates || 'Flexible')],
-    ['Duration', parsed.duration || '—'],
+    ['Dates', parsed.startDate && parsed.startDate!=='–' ? `${formatDate(parsed.startDate)} – ${formatDate(parsed.endDate)}` : (parsed.flexDates||'Flexible')],
+    ['Duration', parsed.duration||'—'],
     ['Travelers', parsed.travelers],
     ['Flight class', parsed.flightClass],
     ['Points interest', parsed.usePoints],
     ['Points detail', parsed.pointsDetail],
     ['Budget/person', parsed.budget ? `$${Number(parsed.budget.replace(/[^0-9]/g,'')).toLocaleString()}` : parsed.budget],
     ['Activities', parsed.activities],
-  ].filter(r => r[1] && r[1] !== '–' && r[1] !== '-');
-  document.getElementById('previewRows').innerHTML = rows.map(r =>
-    `<div class="preview-row"><span class="preview-label">${r[0]}</span><span class="preview-val">${r[1]}</span></div>`
-  ).join('');
+  ].filter(r => r[1] && r[1]!=='–' && r[1]!=='-');
+  document.getElementById('previewRows').innerHTML = rows.map(r => `<div class="preview-row"><span class="preview-label">${r[0]}</span><span class="preview-val">${r[1]}</span></div>`).join('');
   document.getElementById('parsedPreview').classList.add('visible');
 }
-
 async function generateProposal() {
-  if (!parsed) {
-    const raw = document.getElementById('ternPaste').value.trim();
-    if (!raw) { alert('Please paste a Tern submission first.'); return; }
-    parsed = parseTernSubmission(raw);
-  }
-  const tone = document.getElementById('toneSelect').value;
-  const emphasis = document.getElementById('emphasisSelect').value;
-  const advisorNotes = document.getElementById('advisorNotes').value.trim();
-  const dateRange = (parsed.startDate && parsed.startDate !== '–')
-    ? `${formatDate(parsed.startDate)} – ${formatDate(parsed.endDate)}`
-    : parsed.flexDates || 'Dates flexible';
-
-  document.getElementById('propTitle').textContent = parsed.destination || parsed.tripName || 'Your Journey';
-  document.getElementById('propSubtitle').textContent = `Prepared exclusively for ${parsed.clientName}`;
-  const metaData = [
-    {label:'Client', value: parsed.clientName},
-    {label:'Dates', value: dateRange},
-    parsed.duration ? {label:'Duration', value: parsed.duration} : null,
-    parsed.travelers ? {label:'Travelers', value: parsed.travelers} : null,
-    parsed.budget ? {label:'Budget / person', value: `$${Number((parsed.budget+'').replace(/[^0-9]/g,'')).toLocaleString()}`} : null,
-    parsed.flightClass ? {label:'Flight class', value: parsed.flightClass} : null,
+  if (!parsed) { const raw=document.getElementById('ternPaste').value.trim(); if(!raw){alert('Please paste a Tern submission first.');return;} parsed=parseTernSubmission(raw); }
+  const tone=document.getElementById('toneSelect').value;
+  const emphasis=document.getElementById('emphasisSelect').value;
+  const advisorNotes=document.getElementById('advisorNotes').value.trim();
+  const dateRange=(parsed.startDate&&parsed.startDate!=='–') ? `${formatDate(parsed.startDate)} – ${formatDate(parsed.endDate)}` : parsed.flexDates||'Dates flexible';
+  document.getElementById('propTitle').textContent=parsed.destination||parsed.tripName||'Your Journey';
+  document.getElementById('propSubtitle').textContent=`Prepared exclusively for ${parsed.clientName}`;
+  const metaData=[
+    {label:'Client',value:parsed.clientName},
+    {label:'Dates',value:dateRange},
+    parsed.duration?{label:'Duration',value:parsed.duration}:null,
+    parsed.travelers?{label:'Travelers',value:parsed.travelers}:null,
+    parsed.budget?{label:'Budget / person',value:`$${Number((parsed.budget+'').replace(/[^0-9]/g,'')).toLocaleString()}`}:null,
+    parsed.flightClass?{label:'Flight class',value:parsed.flightClass}:null,
   ].filter(Boolean);
-  document.getElementById('propMeta').innerHTML = metaData.map(m =>
-    `<div class="meta-item"><div class="meta-label">${m.label}</div><div class="meta-value">${m.value}</div></div>`
-  ).join('');
-
-  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('propMeta').innerHTML=metaData.map(m=>`<div class="meta-item"><div class="meta-label">${m.label}</div><div class="meta-value">${m.value}</div></div>`).join('');
+  document.getElementById('emptyState').style.display='none';
   document.getElementById('proposal').classList.remove('visible');
-  document.getElementById('streamClientName').textContent = parsed.clientName;
+  document.getElementById('streamClientName').textContent=parsed.clientName;
   document.getElementById('streamingIndicator').classList.add('active');
-  document.getElementById('generateBtn').disabled = true;
+  document.getElementById('generateBtn').disabled=true;
 
-  const prompt = `You are Gabriel Douek, a luxury travel advisor at Vantage Point Travel. A client has submitted a trip request and you are writing them a fully fledged, expert travel proposal — NOT a summary of what they submitted. This is a sales document and a service document. It should make the client excited, informed, and confident they're in the best hands.
+  const prompt=`You are Gabriel Douek, a luxury travel advisor at Vantage Point Travel. Write a complete expert travel proposal — NOT a summary of the client's form. This should excite, inform, and close the client.
 
-OUTPUT FORMAT: Clean HTML only. No markdown, no code fences, no backticks. Use only these tags: h2, h3, p, ul, li, div (with class="highlight-box"). No inline styles. No outer wrapper div. Start directly with content.
+OUTPUT: HTML only. No markdown, no backticks. Tags: h2, h3, p, ul, li, div.highlight-box only. No inline styles. No wrapper div. Start with content immediately.
 
-CLIENT REQUEST (use this as context — do NOT repeat it back verbatim):
-- Client: ${parsed.clientName}
+CLIENT DATA (context only — never repeat verbatim, never write "you selected" or "you mentioned"):
+- Name: ${parsed.clientName}
 - Destination: ${parsed.destination}
-- Dates: ${dateRange}${parsed.duration ? ` (${parsed.duration})` : ''}
+- Dates: ${dateRange}${parsed.duration?` (${parsed.duration})`:''}
 - Travelers: ${parsed.travelers}
-- Reason for travel: ${parsed.reason}
-- Flight preference: ${parsed.flightClass} from ${parsed.airports}
-- Accommodation preference: ${parsed.roomPref || 'standard'}, ${parsed.rooms || '1 room'}
-- What they need booked: ${parsed.whatToBook}
-- Activities interested in: ${parsed.activities}
-- Points/miles: ${parsed.usePoints} — programs: ${parsed.pointsDetail || 'none specified'}
-- Budget per person: ${parsed.budget ? '$' + parsed.budget : 'not specified'}
-- Special notes: ${parsed.extras || 'none'}
-${advisorNotes ? `- Advisor personal notes: ${advisorNotes}` : ''}
-
+- Reason: ${parsed.reason}
+- Flights: ${parsed.flightClass} from ${parsed.airports}
+- Accommodation: ${parsed.roomPref||'standard'}, ${parsed.rooms||'1 room'}
+- Needs: ${parsed.whatToBook}
+- Activities: ${parsed.activities}
+- Points: ${parsed.usePoints} / ${parsed.pointsDetail||'none'}
+- Budget/pp: ${parsed.budget?'$'+parsed.budget:'not specified'}
+- Notes: ${parsed.extras||'none'}
+${advisorNotes?`- Advisor notes: ${advisorNotes}`:''}
 Tone: ${tone}. Emphasis: ${emphasis}.
 
-WRITE THE FOLLOWING SECTIONS — each one should be substantive, expert, and specific:
+SECTIONS TO WRITE:
 
-Opening paragraph (no h2 heading): A warm, personal 2–3 sentence opener addressing ${parsed.clientName} by first name. Acknowledge what they're celebrating or looking for (${parsed.reason}). Set the tone for the proposal.
+Opening (no heading): 2–3 warm sentences to ${parsed.clientName} by first name. Reference ${parsed.reason}. Aspirational tone.
 
-h2: Why This Trip, Why Now
-Write 2 paragraphs that sell the destination. Use your expert knowledge — what makes this place extraordinary for THIS type of traveler at THIS time of year. Mention specific neighborhoods, landscapes, food scenes, cultural moments. Make them feel like they can already picture themselves there.
+h2: Why This Trip
+2 full paragraphs selling this destination for THIS traveler. Specific neighborhoods, food scenes, landscapes, seasonal highlights. Make them feel it.
 
-h2: Your Itinerary Vision
-Don't write a day-by-day schedule. Instead, write 3–4 paragraphs describing the shape and rhythm of the trip — how the days might flow, what the balance of experiences looks like, what kind of moments they'll have. Be evocative and specific. Reference real places, restaurants, experiences, and local gems relevant to their destination and interests (${parsed.activities}).
+h2: The Shape of Your Trip
+3 paragraphs on how the days feel and flow — not a schedule, a vision. What kind of mornings, evenings, discoveries. Real specific places, restaurants, experiences matching ${parsed.activities}.
 
 h2: Where You'll Stay
-Recommend 2–3 specific real hotels or properties that fit their destination, budget, and preferences. For each one, write 2–3 sentences: what makes it special, what the experience is like, why it's right for them. If they mentioned a specific property, validate that choice and add complementary options.
+2–3 specific real named hotels. 2–3 sentences each — what makes it special, the experience, why it fits them. Validate any property they mentioned and add complementary options.
 
 h2: Getting There
-Specific flight strategy: which airlines fly the best routes from ${parsed.airports} to the destination, realistic flight times, which cabin class makes sense for ${parsed.flightClass}. If they have points (${parsed.pointsDetail}), name the specific programs and sweet spots — transfer partners, award programs, what a redemption might look like. Be concrete and actionable.
+Specific airlines and routes from ${parsed.airports}. Realistic flight times. Why ${parsed.flightClass} works for this trip. ${parsed.pointsDetail?`Exact programs, transfer partners, award sweet spots for ${parsed.pointsDetail} on this route.`:''}
 
-${parsed.usePoints && (parsed.usePoints.toLowerCase().includes('yes') || parsed.usePoints.toLowerCase().includes('possibly')) ? `h2: Points & Miles Strategy
-Give a real, specific strategy for ${parsed.pointsDetail || 'their loyalty programs'}. Name transfer partners, award programs, redemption sweet spots for this specific route and hotel category. Estimate the value they could extract. This should feel like expert advice, not generic tips.` : ''}
+${parsed.usePoints&&(parsed.usePoints.toLowerCase().includes('yes')||parsed.usePoints.toLowerCase().includes('possibly'))?`h2: Points & Miles Strategy
+Specific expert strategy for ${parsed.pointsDetail||'their programs'}. Real transfer partners, award programs, redemption sweet spots for this route and hotel tier. Estimated value. Expert advice, not generic tips.`:''}
 
 h2: What We Handle For You
-4–5 bullet points describing exactly what Vantage Point Travel takes care of: flights, hotels, transfers, restaurant reservations, activity bookings, 24/7 support, supplier relationships, VIP amenities. Make it feel like a concierge service.
+5 bullet points: flights, hotels, transfers, restaurant reservations, activity bookings, 24/7 support, VIP amenities access, supplier relationships.
 
-div.highlight-box: A short punchy value statement — the headline benefit of booking through VPT for this specific trip. One or two sentences max.
+div.highlight-box: One powerful sentence on why VPT is worth it for this specific trip.
 
-Closing paragraph: Warm, personal close. Invite them to jump on a call or reply to get started. Reference their travel dates to create light urgency. Sign off as Gabriel Douek, Vantage Point Travel.
+Closing: Personal and warm. Invite a call or reply. Light urgency referencing ${dateRange}. Sign as Gabriel Douek, Vantage Point Travel.
 
-CRITICAL RULES:
-- DO NOT list or repeat their form answers back to them. Never write "You selected..." or "You mentioned..." Use the data to inform your writing, not regurgitate it.
-- Every hotel, airline, restaurant, or experience you name must be real and specific to this destination.
-- Write at least 900 words. This is a full proposal, not a summary.
-- Sound like an expert who has been there, not a chatbot reading a form.`;
-
-  const PROXY_URL = 'https://vantagepointtravel.com/wp-json/vpt/v1/proxy';
-  const PROXY_KEY = '6564ee37969c7b9e8079e4f44310fe05ba078421b61bc7d4bdf934b3972afdbb';
+RULES: 900+ words. Every property/airline/restaurant must be real. Never echo the form. Sound like you've been there.`;
 
   try {
-    const response = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        proxy_key: PROXY_KEY,
-        endpoint: 'claude',
-        method: 'POST',
-        body: {
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 3000,
-          messages: [{role:'user', content: prompt}]
-        }
-      })
+    const response=await fetch('https://plain-water-22fa.gabe-bdf.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:prompt}]})
     });
-
-    const data = await response.json();
-    const body = document.getElementById('proposalBody');
-    body.innerHTML = '';
+    const data=await response.json();
+    const body=document.getElementById('proposalBody');
+    body.innerHTML='';
     document.getElementById('streamingIndicator').classList.remove('active');
     document.getElementById('proposal').classList.add('visible');
-
-    let text = '';
-    if (data.content && Array.isArray(data.content)) {
-      text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    } else if (typeof data === 'string') {
-      text = data;
-    } else if (data.error) {
-      throw new Error(data.error.message || JSON.stringify(data.error));
-    }
-
-    body.innerHTML = text || '<p>Proposal generated.</p>';
+    let text='';
+    if(data.content&&Array.isArray(data.content)){text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');}
+    else if(data.error){throw new Error(data.error.message||JSON.stringify(data.error));}
+    body.innerHTML=text||'<p>Proposal generated.</p>';
     appendFooter(body);
-    document.getElementById('outputPanel').scrollTop = 0;
+    document.getElementById('outputPanel').scrollTop=0;
   } catch(err) {
     document.getElementById('streamingIndicator').classList.remove('active');
-    document.getElementById('proposalBody').innerHTML = `<p style="color:#c0392b">Error: ${err.message}</p>`;
+    document.getElementById('proposalBody').innerHTML=`<p style="color:#c0392b">Error: ${err.message}</p>`;
     document.getElementById('proposal').classList.add('visible');
   }
-  document.getElementById('generateBtn').disabled = false;
+  document.getElementById('generateBtn').disabled=false;
 }
-
-function appendFooter(body) {
-  const f = document.createElement('div');
-  f.className = 'proposal-footer';
-  f.innerHTML = `
-    <div class="footer-brand">Vantage Point Travel</div>
-    <div class="footer-contact">Gabriel Douek · gabe@vantagepointtravel.com<br>vantagepointtravel.com · Prepared ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
-  `;
+function appendFooter(body){
+  const f=document.createElement('div');
+  f.className='proposal-footer';
+  f.innerHTML=`<div class="footer-brand">Vantage Point Travel</div><div class="footer-contact">Gabriel Douek · gabe@vantagepointtravel.com<br>vantagepointtravel.com · Prepared ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>`;
   body.appendChild(f);
 }
-
-function copyProposal() {
-  const title = document.getElementById('propTitle').textContent;
-  const body  = document.getElementById('proposalBody').innerText;
-  navigator.clipboard.writeText(`${title}\n\n${body}`).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = 'Copied ✓';
-    setTimeout(() => btn.textContent = orig, 2000);
-  });
+function copyProposal(){
+  const title=document.getElementById('propTitle').textContent;
+  const body=document.getElementById('proposalBody').innerText;
+  navigator.clipboard.writeText(`${title}\n\n${body}`).then(()=>{const btn=event.target;const orig=btn.textContent;btn.textContent='Copied ✓';setTimeout(()=>btn.textContent=orig,2000);});
 }
 </script>
 </body>
